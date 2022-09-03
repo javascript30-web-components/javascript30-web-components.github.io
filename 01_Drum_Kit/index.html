@@ -99,7 +99,8 @@
             this.key.ontransitionend = (evt) => (evt.propertyName == "transform") && this.stop(evt);
             window.addEventListener("keydown", (evt) => (evt.key == this.keyChar.toLowerCase()) && this.play(evt));
             this.audio.oncanplaythrough = (evt) => {
-                this.audio.volume = 0.1;
+                // fires for every keypress also
+                // this.audio.volume = 0.1;
                 console.log(this.keyChar, evt);
             }
         }
