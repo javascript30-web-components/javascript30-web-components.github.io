@@ -1,1 +1,120 @@
+<template id="KEY-SOUND">
+    <style>
+        key {
+            display: block;
+            border: .4rem solid black;
+            border-radius: .5rem;
+            margin: 1rem;
+            padding: 1rem .5rem;
+            font-size: 1.5rem;
+            transition: all .07s ease;
+            width: 10rem;
+            text-align: center;
+            color: white;
+            background: rgba(165, 144, 144, 0.4);
+            user-select: none;
+            position: relative;
+            cursor: pointer;
+        }
 
+        kbd {
+            display: block;
+            font-size: 4rem;
+        }
+
+        sound {
+            display: block;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .1rem;
+            color: gold;
+            text-shadow: 0 0 .5rem rgba(0, 0, 0, 0.2);
+        }
+
+        .play {
+            transform: scale(1.1);
+            border-color: gold;
+            box-shadow: 0 0 1rem gold;
+        }
+
+        .hold {
+            background: rgba(0, 255, 0, 0.5)
+        }
+    </style>
+    <key>
+        <kbd>A</kbd>
+        <sound>clap</sound>
+    </key>
+</template>
+
+<style>
+    html {
+        font-size: 10px;
+        background: url('./background.jpg') bottom center;
+        background-size: cover;
+    }
+
+    body,
+    html {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+    }
+
+    keys {
+        display: flex;
+        flex: 1;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<keys id="KEYS"></keys>
+
+<script>
+    KEYS.innerHTML = "A:clap,S:hihat,D:kick,F:openhat,G:boom,H:ride,J:snare,K:tom,L:tink".split(",").map(keysound => {
+        let [key, sound] = keysound.split(":");
+        return `<key-sound id="${key}" key="${key}" sound="${sound}"></key-sound>`
+    }).join("");
+
+    customElements.define("key-sound", class extends HTMLElement {
+        constructor() {
+            super()
+                .attachShadow({ mode: "open" })
+                .append(document.getElementById(this.nodeName).content.cloneNode(true));
+            this.keyChar = this.getAttribute("key");
+            this.key = this.shadowRoot.querySelector("key");
+            this.shadowRoot.querySelector("kbd").innerText = this.keyChar;
+            this.audio = this.shadowRoot.querySelector("audio");
+            this.audio = new Audio(`./sounds/${this.getAttribute("sound")}.wav`);
+            this.key.onclick = (evt) => {
+                if (evt.ctrlKey) {
+                    this.audio.loop = evt.ctrlKey && !this.audio.loop;
+                    this.key.classList.toggle('hold', this.audio.loop);
+                }
+                this.play(evt);
+            }
+            this.shadowRoot.querySelector("sound").innerText = this.getAttribute("sound");
+            this.key.ontransitionend = (evt) => (evt.propertyName == "transform") && this.stop(evt);
+            window.addEventListener("keydown", (evt) => (evt.key == this.keyChar.toLowerCase()) && this.play(evt));
+            this.audio.oncanplaythrough = (evt) => {
+                this.audio.volume = 0.1;
+                console.log(this.keyChar, evt);
+            }
+        }
+        play(evt) {
+            this.audio.volume = 1;
+            console.log(this.keyChar, evt);
+            this.key.classList.add('play');
+            this.audio.currentTime = 0;
+            this.audio.play();
+        }
+        stop(evt) {
+            this.key.classList.remove('play');
+        }
+    });
+    window.onload = () => {
+        console.log("loaded");
+    }
+</script>
